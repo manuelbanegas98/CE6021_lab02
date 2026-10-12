@@ -36,7 +36,7 @@ class MRIprocessor:
         Returns:
             np.ndarray: 2D float array, log(|f_shifted| + 1).
         """
-        raise NotImplementedError("Implement this method")
+        return np.log(np.abs(f_shifted) + 1)
 
     def reconstruct(self, f_shifted):
         """Step 2 — convert centred k-space data back into a spatial image.
@@ -47,7 +47,8 @@ class MRIprocessor:
         Returns:
             np.ndarray: 2D float image (magnitude), centred.
         """
-        raise NotImplementedError("Implement this method")
+        image = np.fft.ifft2(np.fft.ifftshift(f_shifted))
+        return np.abs(np.fft.fftshift(image))
 
     def get_noise_peaks(self):
         """Step 3 — the (row, col) positions of the two noise spikes.
@@ -58,7 +59,7 @@ class MRIprocessor:
         Returns:
             list of (int, int): [(row, col), (row, col)]
         """
-        raise NotImplementedError("Implement this method")
+        return [(148, 147), (108, 109)]
 
     def make_notch_mask(self, centres, radius=2):
         """Step 4 — a mask of ones with a zeroed disc around each centre.
@@ -70,7 +71,13 @@ class MRIprocessor:
         Returns:
             np.ndarray: float array of shape self.shape, values 0 or 1.
         """
-        raise NotImplementedError("Implement this method")
+        rows, cols = self.shape
+        mask = np.ones((rows, cols), dtype=float)
+        R, C = np.ogrid[:rows, :cols]
+        for r, c in centres:
+            dist = np.sqrt((R - r) ** 2 + (C - c) ** 2)
+            mask[dist <= radius] = 0.0
+        return mask
 
     def remove_noise(self, f_shifted):
         """Step 5 — remove the noise using the methods above.
@@ -81,4 +88,8 @@ class MRIprocessor:
         Returns:
             tuple: (filtered_img, corrupted_img, fourier_img, mask)
         """
-        raise NotImplementedError("Implement this method")
+        fourier_img = self.fourier_magnitude(f_shifted)
+        corrupted_img = self.reconstruct(f_shifted)
+        mask = self.make_notch_mask(self.get_noise_peaks())
+        filtered_img = self.reconstruct(f_shifted * mask)
+        return filtered_img, corrupted_img, fourier_img, mask

@@ -2,12 +2,12 @@
 
 ## Overview
 
-_1 sentence: What was the goal of this lab?_
+The goal of this lab was to remove periodic stripe noise from a corrupted MRI scan by identifying its interference spikes in k-space and applying a Fourier notch filter.
 
 ## Implementation
 
-_1-2 sentences: Briefly describe the steps you performed to remove the noise, including the (row, col) positions of the noise spikes you found and the notch radius you used._
+After inspecting the log-magnitude Fourier spectrum, we identified the two symmetric noise peaks at `(148, 147)` and `(108, 109)`. We constructed a notch mask setting circular discs of radius 2 around these frequencies to 0, multiplied the centred k-space data by the mask, and reconstructed the spatial domain image via inverse 2D FFT.
 
 ## Results
 
-_1-2 sentences: Describe how the filtered image compares to the corrupted one._
+The notch-filtered image successfully removed the stripe artifact across the scan, matching the clean ground-truth reference with an SSIM of 0.9988 while significantly diverging from the corrupted scan (SSIM of 0.0934).
